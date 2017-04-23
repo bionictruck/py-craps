@@ -8,7 +8,7 @@ from decimal import Decimal
 
 wallet = Decimal('100.00')
 wager = 0
-odds = Decimal('0.00')
+odds = 0
 point_set = False
 point = 0
 dice_1 = 0
@@ -52,7 +52,7 @@ def rolling():
     global point_set
     os.system('clear')
     print(u"\U0001F3B2" + "   Rolling... " + u"\U0001F3B2")
-    time.sleep(2)
+    time.sleep(1)
     dice_1 = random.randrange(1, 7)
     dice_2 = random.randrange(1, 7)
     if point_set == False:
@@ -69,34 +69,43 @@ def roll_out_result():
     global point_set
     global odds
     if dice_1 + dice_2 == 2 or dice_1 + dice_2 == 3 or dice_1 + dice_2 == 12 and point_set == False:
-        print("A " + str(dice_1 + dice_2) + " has been rolled. You lose. Sorry.")
+        print(str(dice_1 + dice_2) + " has been rolled. You lose. Sorry.")
         wallet -= wager
-        rebet = input("Would you like to bet again? Y/N? ")
-        if rebet.lower()== "y" or rebet.lower() == "yes":
-            bet()
-        elif rebet.lower() == "n" or rebet.lower() == "no":
-            print("See you next time!")
-            quit()
+        rebet()
     elif dice_1 + dice_2 == 7 or dice_1 + dice_2 == 11 and point_set == False:
-        print("A " + str(dice_1 + dice_2) + " has been rolled. WINNER!")
+        print(str(dice_1 + dice_2) + " has been rolled. WINNER!")
         wallet += wager
         print("You now have " + str(wallet) + ".")
-        again = input("Would you like to roll again? Y/N? ")
-        if again.lower() == "y" or again.lower() == "yes":
-            bet()
-        elif again.lower() == "n" or again.lower() == "no":
-            print("See you next time!")
-            quit()
+        rebet()
     elif point_set == False:
         point = dice_1 + dice_2
         point_set = True
         print("The point is now " + str(point) + ".")
-        odds_bet = input("Would you like to bet up to 2X $" + str(wager) + " to take the odds bet? Y/N?")
-        if odds_bet.lower() == 'y' or odds_bet.lower() == 'yes':
-            odds = input("Place your odds bet (Up to 2X $" + str(wager) + ") $")
+        odds_bet()
+
+def odds_bet():
+    global odds
+    global wager
+    take_odds = input("Would you like to bet up to 2X $" + str(wager) + " to take the odds bet? Y/N?")
+    if take_odds.lower() == 'y' or take_odds.lower() == 'yes':
+        odds = input("Place your odds bet (Up to 2X $" + str(wager) + ") $")
+        try:
+            odds = int(odds)
+        except Exception:
+            print("Invalid entry. Enter a bet up to 2X $" + str(wager))
+            odds_bet()
+        if odds <= wager * 2:
             rolling()
-        elif odds_bet.lower() == 'n' or odds_bet.lower() == 'no':
-            rolling()
+        elif int(odds) > int(wager) * 2:
+            print("You can only bet up to 2X $" + str(wager))
+            odds_bet()
+    elif take_odds.lower() == 'n' or take_odds.lower() == 'no':
+        rolling()
+    else:
+        print("Invalid entry. Please use Y or N.")
+        time.sleep(1)
+        os.system('clear')
+        odds_bet()
     
 
 def point_result():
@@ -109,7 +118,7 @@ def point_result():
     global odds
     global payout
     print("The point is " + str(point) + ".")
-    print("A " + str(dice_1 + dice_2) + " has been rolled.")
+    print(str(dice_1 + dice_2) + " has been rolled.")
     if point == dice_1 + dice_2:
         print("The point has been hit! You win $" + str(wager) + " on the Pass Line bet!")
         wallet += wager
@@ -126,13 +135,9 @@ def point_result():
                 payout = Decimal((int(odds) * 6 / 5))
                 print("Your odds bet pays 6:5. You win $" + str(payout) + "!")
                 wallet += Decimal((int(odds) * 6 / 5))
-            reroll = input("Would you like to bet again? Y/N?")
-            if reroll.lower() == 'y' or reroll.lower() == 'yes':
-                bet()
-            elif reroll.lower() == 'n' or reroll.lower() == 'no':
-                print("You finished with $" + str(wallet) + ".")
-                print("See you next time!")
-        point_set = False
+            rebet()
+        else:
+            rebet()
     elif dice_1 + dice_2 == 7:
         print("Seven out! You lose your Pass Line bet of $" + str(wager) + ".")
         wallet -= wager
@@ -140,19 +145,36 @@ def point_result():
             print("You lose your odds line bet of $" + str(odds) + ".")
             wallet -= Decimal(odds)
         point_set = False
-        reroll = input("Would you like to bet again? Y/N?")
-        if reroll.lower() == 'y' or reroll.lower() == 'yes':
-            bet()
-        elif reroll.lower() == 'n' or reroll.lower() == 'no':
-            print("You finished with $" + str(wallet) + ".")
-            print("See you next time!")
-        point_set = False
+        rebet()
     else:
-        reroll = input("Your bet(s) are not affected. Would you like to roll again? Y/N?")
-        if reroll.lower() == 'y' or reroll.lower() == 'yes':
-            rolling()
-        elif reroll.lower() == 'n' or reroll.lower() == 'no':
-            print("You finished with $" + str(wallet) + ".")
-            print("See you next time!")
+        print("Your bet(s) are not affected.")
+        roll_again()
+
+def rebet():
+    global point_set
+    global wallet
+    point_set = False
+    bet_again = input("Would you like to bet again? Y/N? ")
+    if bet_again.lower()== "y" or bet_again.lower() == "yes":
+        bet()
+    elif bet_again.lower() == "n" or bet_again.lower() == "no":
+        print("You finished with $" + str(wallet) + ".")
+        print("See you next time!")
+        quit()
+    else:
+        print("Invalid entry. Please enter Y or N.")
+        rebet()
+
+def roll_again():
+    again = input("Would you like to roll again? Y/N? ")
+    if again.lower() == "y" or again.lower() == "yes":
+        rolling()
+    elif again.lower() == "n" or again.lower() == "no":
+        print("You finished with $" + str(wallet) + ".")
+        print("See you next time!")
+        quit()
+    else:
+        print("Invalid entry. Please enter Y or N.")
+        roll_again()
 
 bet()
