@@ -22,7 +22,7 @@ def bet():
     odds = 0
     wager = 0
     os.system('clear')
-    if wallet <= 5:
+    if wallet < 5:
         print("You're don't have enough money! You finished with only $" + str(wallet))
         print("See you next time!")
         quit()
